@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { jobs } from "@/services/mock/data";
+import { jobsApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import type { Job } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -18,6 +20,10 @@ import { stagger, item } from "@/lib/motion";
 export default function HrJobs() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
+  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+    queryKey: ["jobs"],
+    queryFn: () => jobsApi.list(),
+  });
   const filtered = jobs.filter((j) =>
     (status === "all" || j.status.toLowerCase() === status) &&
     (j.title.toLowerCase().includes(q.toLowerCase()) || j.department.toLowerCase().includes(q.toLowerCase()))
@@ -49,6 +55,8 @@ export default function HrJobs() {
         </Select>
       </div>
       <motion.div variants={stagger(0.05)} initial="initial" animate="animate" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {isLoading && <p className="text-sm text-muted-foreground">Loading jobs…</p>}
+        {!isLoading && filtered.length === 0 && <p className="text-sm text-muted-foreground">No jobs yet.</p>}
         {filtered.map((j) => (
           <motion.div key={j.id} variants={item}>
             <Card className="p-6 hover:shadow-lg transition-all hover:-translate-y-0.5 duration-300 h-full flex flex-col">

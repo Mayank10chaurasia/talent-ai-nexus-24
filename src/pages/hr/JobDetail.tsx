@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/common/PageHeader";
-import { jobs } from "@/services/mock/data";
+import { jobsApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import type { Job } from "@/types";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +11,12 @@ import { MapPin, Briefcase, Users, Star, Calendar } from "lucide-react";
 
 export default function HrJobDetail() {
   const { id } = useParams();
-  const job = jobs.find((j) => j.id === id);
+  const { data: job, isLoading } = useQuery<Job>({
+    queryKey: ["job", id],
+    queryFn: () => jobsApi.get(id!),
+    enabled: !!id,
+  });
+  if (isLoading) return <p className="text-sm text-muted-foreground">Loading…</p>;
   if (!job) return <p>Job not found</p>;
   return (
     <div className="space-y-6">

@@ -8,7 +8,8 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { applicants } from "@/services/mock/data";
+import { applicationsApi, flattenApplication } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 import type { Applicant } from "@/types";
 import { Search, Eye, Star, CalendarPlus, X } from "lucide-react";
 import { ApplicantDrawer } from "@/features/applicants/ApplicantDrawer";
@@ -17,10 +18,16 @@ import { toast } from "sonner";
 export default function HrApplicants() {
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<Applicant | null>(null);
+  const { data: raw = [], isLoading } = useQuery({
+    queryKey: ["applications", "company"],
+    queryFn: () => applicationsApi.allForCompany(),
+  });
+  const applicants: Applicant[] = raw.map((a) => flattenApplication(a as any));
   const list = applicants.filter((a) => a.name.toLowerCase().includes(q.toLowerCase()) || a.jobTitle.toLowerCase().includes(q.toLowerCase()));
   return (
     <div className="space-y-6">
       <PageHeader title="Applicants" description={`${list.length} candidates in your pipeline`} />
+      {isLoading && <p className="text-sm text-muted-foreground">Loading applicants…</p>}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 rounded-xl" />
