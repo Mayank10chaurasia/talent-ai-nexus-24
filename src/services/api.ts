@@ -98,3 +98,35 @@ export const usersApi = {
   me: () => api.get<User>("/users/me"),
   updateMe: (body: Partial<User>) => api.put<User>("/users/me", body),
 };
+
+// Flatten a populated Application doc from the API into the Applicant shape
+// the UI components expect.
+export function flattenApplication(app: any): Applicant {
+  const cand = app.candidate || {};
+  const job = app.job || {};
+  return {
+    id: String(app.id || app._id),
+    name: cand.name || "Candidate",
+    email: cand.email || "",
+    avatar: cand.avatar,
+    jobId: String(job.id || job._id || app.job),
+    jobTitle: job.title || "—",
+    resumeScore: app.resumeScore ?? 0,
+    overallScore: app.overallScore,
+    status: app.status || "New",
+    appliedAt: app.createdAt ? new Date(app.createdAt).toLocaleDateString() : "",
+    interviewStatus: app.interviewStatus,
+    skills: cand.skills || [],
+    experience: cand.experience || "—",
+    education: cand.education || "—",
+    location: cand.location || "—",
+    aiAnalysis: app.aiAnalysis || {
+      matchPercent: app.resumeScore ?? 0,
+      confidence: 60,
+      strengths: [],
+      weaknesses: [],
+      missingSkills: [],
+      recommendation: "",
+    },
+  };
+}
