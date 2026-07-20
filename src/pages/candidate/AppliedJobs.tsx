@@ -3,12 +3,28 @@ import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { Progress } from "@/components/ui/progress";
-import { jobs } from "@/services/mock/data";
+import { applicationsApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
 export default function CandApplied() {
-  const rows = jobs.slice(0, 5).map((j, i) => ({ ...j, status: ["Shortlisted", "New", "Interviewed", "Rejected", "Shortlisted"][i] as any, resumeScore: 60 + i * 8, interview: ["Scheduled", "Pending", "Completed", "Cancelled", "Pending"][i], feedback: i % 2 === 0 ? "Strong technical match" : "Under review" }));
+  const { data: apps = [], isLoading } = useQuery<any[]>({
+    queryKey: ["applications", "mine"],
+    queryFn: () => applicationsApi.mine() as any,
+  });
+  const rows = apps.map((a) => ({
+    id: a.id,
+    title: a.job?.title || "—",
+    companyName: a.job?.companyName || "",
+    status: a.status,
+    postedAt: a.createdAt ? new Date(a.createdAt).toLocaleDateString() : "",
+    resumeScore: a.resumeScore ?? 0,
+    interview: a.interviewStatus || "Pending",
+    feedback: a.aiAnalysis?.recommendation || "Under review",
+  }));
   return (
     <div className="space-y-6">
       <PageHeader title="Applied Jobs" description="Track your applications" />
+      {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+      {!isLoading && rows.length === 0 && <p className="text-sm text-muted-foreground">You haven't applied to any jobs yet.</p>}
       <Card className="overflow-hidden">
         <div className="overflow-x-auto"><Table>
           <TableHeader><TableRow><TableHead>Job</TableHead><TableHead>Status</TableHead><TableHead>Applied</TableHead><TableHead>Resume Score</TableHead><TableHead>Interview</TableHead><TableHead>AI Feedback</TableHead></TableRow></TableHeader>
