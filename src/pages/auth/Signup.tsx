@@ -23,10 +23,14 @@ export default function Signup() {
       <div className="mt-6"><RoleTabs value={role} onChange={setRole} /></div>
       <form
         className="mt-6 space-y-4"
-        onSubmit={handleSubmit((d) => {
-          signup(d.name, d.email, role);
-          toast.success("Welcome to HireAI");
-          nav(role === "company" ? "/company" : "/candidate");
+        onSubmit={handleSubmit(async (d) => {
+          try {
+            const u = await signup(d.name, d.email, d.password, role);
+            toast.success("Welcome to HireAI");
+            nav(u.role === "company" ? "/company" : "/candidate");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Signup failed");
+          }
         })}
       >
         <div><Label>Full name</Label><Input required {...register("name")} className="mt-1.5 rounded-xl" /></div>
