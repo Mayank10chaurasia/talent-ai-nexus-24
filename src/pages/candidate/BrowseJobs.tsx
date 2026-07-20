@@ -31,6 +31,8 @@ export default function CandBrowse() {
         </Select>
       </div>
       <motion.div variants={stagger(0.05)} initial="initial" animate="animate" className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {isLoading && <p className="text-sm text-muted-foreground">Loading jobs…</p>}
+        {!isLoading && list.length === 0 && <p className="text-sm text-muted-foreground">No open roles right now.</p>}
         {list.map((j) => (
           <motion.div key={j.id} variants={item}>
             <Card className="p-6 hover:shadow-lg transition-all hover:-translate-y-0.5 h-full flex flex-col">
