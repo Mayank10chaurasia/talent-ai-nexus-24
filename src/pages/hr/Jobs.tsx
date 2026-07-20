@@ -6,7 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { jobs } from "@/services/mock/data";
+import { jobsApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import type { Job } from "@/types";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
@@ -18,6 +20,10 @@ import { stagger, item } from "@/lib/motion";
 export default function HrJobs() {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
+  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+    queryKey: ["jobs"],
+    queryFn: () => jobsApi.list(),
+  });
   const filtered = jobs.filter((j) =>
     (status === "all" || j.status.toLowerCase() === status) &&
     (j.title.toLowerCase().includes(q.toLowerCase()) || j.department.toLowerCase().includes(q.toLowerCase()))
