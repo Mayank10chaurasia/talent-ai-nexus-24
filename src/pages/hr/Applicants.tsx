@@ -27,6 +27,7 @@ export default function HrApplicants() {
   return (
     <div className="space-y-6">
       <PageHeader title="Applicants" description={`${list.length} candidates in your pipeline`} />
+      {isLoading && <p className="text-sm text-muted-foreground">Loading applicants…</p>}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className="pl-9 rounded-xl" />
