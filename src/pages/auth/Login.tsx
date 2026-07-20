@@ -24,10 +24,14 @@ export default function Login() {
       <div className="mt-6"><RoleTabs value={role} onChange={setRole} /></div>
       <form
         className="mt-6 space-y-4"
-        onSubmit={handleSubmit((d) => {
-          login(d.email, role);
-          toast.success("Signed in");
-          nav(role === "company" ? "/company" : "/candidate");
+        onSubmit={handleSubmit(async (d) => {
+          try {
+            const u = await login(d.email, d.password);
+            toast.success("Signed in");
+            nav(u.role === "company" ? "/company" : "/candidate");
+          } catch (e) {
+            toast.error(e instanceof Error ? e.message : "Sign in failed");
+          }
         })}
       >
         <div>
