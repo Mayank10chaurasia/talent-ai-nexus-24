@@ -7,6 +7,19 @@ export const tokenStore = {
   clear: () => localStorage.removeItem(TOKEN_KEY),
 };
 
+// Normalize Mongo `_id` → `id` recursively so components using `.id` keep working.
+function normalizeIds<T>(value: T): T {
+  if (Array.isArray(value)) return value.map(normalizeIds) as unknown as T;
+  if (value && typeof value === "object") {
+    const obj = value as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(obj)) out[k] = normalizeIds(v);
+    if ("_id" in out && !("id" in out)) out.id = String(out._id);
+    return out as unknown as T;
+  }
+  return value;
+}
+
 async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -18,7 +31,7 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
   const text = await res.text();
   const data = text ? JSON.parse(text) : null;
   if (!res.ok) throw new Error(data?.message || res.statusText);
-  return data as T;
+  return normalizeIds(data) as T;
 }
 
 export const api = {
