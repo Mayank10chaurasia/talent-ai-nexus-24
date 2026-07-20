@@ -15,7 +15,7 @@ export default function CandApply() {
   const nav = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const { register, handleSubmit } = useForm<{ projects?: string }>();
+  const { register, handleSubmit } = useForm<Record<string, string>>();
   return (
     <div className="space-y-6">
       <PageHeader title="Apply for role" description="Submit your application" actions={<Button asChild variant="outline" className="rounded-xl"><Link to={`/candidate/jobs/${id}`}>Cancel</Link></Button>} />
