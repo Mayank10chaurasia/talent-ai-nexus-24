@@ -9,15 +9,31 @@ import { UploadCloud } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { useState } from "react";
+import { applicationsApi } from "@/services/api";
 export default function CandApply() {
   const { id } = useParams();
   const nav = useNavigate();
   const [file, setFile] = useState<File | null>(null);
-  const { register, handleSubmit } = useForm();
+  const [submitting, setSubmitting] = useState(false);
+  const { register, handleSubmit } = useForm<{ projects?: string }>();
   return (
     <div className="space-y-6">
       <PageHeader title="Apply for role" description="Submit your application" actions={<Button asChild variant="outline" className="rounded-xl"><Link to={`/candidate/jobs/${id}`}>Cancel</Link></Button>} />
-      <form onSubmit={handleSubmit(() => { toast.success("Application submitted"); nav("/candidate/applied"); })}>
+      <form
+        onSubmit={handleSubmit(async (values) => {
+          if (!id) return;
+          setSubmitting(true);
+          try {
+            await applicationsApi.apply(id, values.projects || undefined);
+            toast.success("Application submitted");
+            nav("/candidate/applied");
+          } catch (e: any) {
+            toast.error(e.message || "Failed to submit");
+          } finally {
+            setSubmitting(false);
+          }
+        })}
+      >
         <Card className="p-6 sm:p-8 space-y-6">
           <div>
             <Label>Resume (PDF)</Label>
