@@ -6,14 +6,20 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { jobs } from "@/services/mock/data";
+import { jobsApi } from "@/services/api";
+import { useQuery } from "@tanstack/react-query";
+import type { Job } from "@/types";
 import { Search, MapPin, Bookmark, Building2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { stagger, item } from "@/lib/motion";
 export default function CandBrowse() {
   const [q, setQ] = useState("");
   const [mode, setMode] = useState("all");
-  const list = jobs.filter((j) => (mode === "all" || j.workMode.toLowerCase() === mode) && j.title.toLowerCase().includes(q.toLowerCase()) && j.status === "Open");
+  const { data: jobs = [], isLoading } = useQuery<Job[]>({
+    queryKey: ["jobs", "open"],
+    queryFn: () => jobsApi.list({ status: "Open" }),
+  });
+  const list = jobs.filter((j) => (mode === "all" || j.workMode.toLowerCase() === mode) && j.title.toLowerCase().includes(q.toLowerCase()));
   return (
     <div className="space-y-6">
       <PageHeader title="Browse Jobs" description={`${list.length} roles available`} />
