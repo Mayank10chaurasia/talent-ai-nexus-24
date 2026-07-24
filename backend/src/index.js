@@ -13,12 +13,9 @@ import { errorHandler, notFound } from "./middleware/error.js";
 
 const app = express();
 
-app.use(
-  cors({
-    origin: (process.env.CORS_ORIGIN ?? "*").split(",").map((s) => s.trim()),
-    credentials: true,
-  }),
-);
+// Allow all origins during development so the Lovable preview URL,
+// localhost, etc. can all call the API. Tighten this before deploying.
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 app.use(morgan("dev"));
 
