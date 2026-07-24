@@ -2,7 +2,7 @@ import { Outlet } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  LayoutDashboard, Briefcase, Users, Star, CalendarDays, BarChart3,
+  Briefcase, Star, CalendarDays, BarChart3,
   Building2, Settings, Compass, ClipboardList, Video, History, User,
 } from "lucide-react";
 import { AppSidebar, NavItem } from "@/components/dashboard/Sidebar";
@@ -10,9 +10,7 @@ import { Topbar } from "@/components/dashboard/Topbar";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 const companyNav: NavItem[] = [
-  { to: "/company", label: "Dashboard", icon: LayoutDashboard },
   { to: "/company/jobs", label: "Jobs", icon: Briefcase },
-  { to: "/company/applicants", label: "Applicants", icon: Users },
   { to: "/company/shortlisted", label: "Shortlisted", icon: Star },
   { to: "/company/interviews", label: "Interviews", icon: CalendarDays },
   { to: "/company/reports", label: "Reports", icon: BarChart3 },
@@ -21,7 +19,6 @@ const companyNav: NavItem[] = [
 ];
 
 const candidateNav: NavItem[] = [
-  { to: "/candidate", label: "Dashboard", icon: LayoutDashboard },
   { to: "/candidate/jobs", label: "Browse Jobs", icon: Compass },
   { to: "/candidate/applied", label: "Applied Jobs", icon: ClipboardList },
   { to: "/candidate/interviews", label: "Upcoming Interviews", icon: Video },
