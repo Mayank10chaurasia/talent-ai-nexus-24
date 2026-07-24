@@ -8,6 +8,7 @@ import jobRoutes from "./routes/job.routes.js";
 import applicationRoutes from "./routes/application.routes.js";
 import interviewRoutes from "./routes/interview.routes.js";
 import userRoutes from "./routes/user.routes.js";
+import resumeRoutes from "./routes/resume.routes.js";
 import { errorHandler, notFound } from "./middleware/error.js";
 
 const app = express();
@@ -28,6 +29,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/applications", applicationRoutes);
 app.use("/api/interviews", interviewRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/resume", resumeRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

@@ -52,3 +52,11 @@ All JSON. Protected routes need `Authorization: Bearer <token>`.
 ### Users
 - `GET  /api/users/me` — profile
 - `PUT  /api/users/me` — update profile
+
+### Resume (for the Python model service)
+Plain endpoints, no auth — meant to be called by your Python model server.
+- `GET  /api/resume/pending` — list applications that don't have an AI score yet.
+  Each item: `{ applicationId, resumeUrl, jobDescription, jobTitle, requiredSkills, candidateName }`
+- `GET  /api/resume/:applicationId` — same shape for one application.
+- `POST /api/resume/:applicationId/score` — Python posts the result back.
+  Body: `{ matchPercent, confidence, strengths[], weaknesses[], missingSkills[], recommendation }`
