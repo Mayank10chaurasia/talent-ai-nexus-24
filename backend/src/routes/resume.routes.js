@@ -75,7 +75,10 @@ router.post("/:applicationId/score", async (req, res) => {
       weaknesses = [],
       missingSkills = [],
       recommendation = "",
+      decision = "",
     } = req.body || {};
+    console.log("AI Score:", matchPercent);
+    console.log("AI Decision:", decision);
 
     app.resumeScore = matchPercent;
     app.aiAnalysis = {
@@ -86,6 +89,15 @@ router.post("/:applicationId/score", async (req, res) => {
       missingSkills,
       recommendation,
     };
+    if (matchPercent >= 60) {
+      app.status = "Shortlisted";
+      app.interviewStatus = "Available";
+    } else {
+      app.status = "Rejected";
+      app.interviewStatus = "Pending";
+    }
+    // ============================
+    // UPDATE APPLICATION STATUS
 
     await app.save();
     res.json({ ok: true, application: app });

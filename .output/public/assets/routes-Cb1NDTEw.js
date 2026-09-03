@@ -1,0 +1,1 @@
+import{t as e}from"./ClientApp-BgZzbZLE.js";import{x as t}from"./index-DfGPOb38.js";var n=t(),r=()=>(0,n.jsx)(e,{});export{r as component};

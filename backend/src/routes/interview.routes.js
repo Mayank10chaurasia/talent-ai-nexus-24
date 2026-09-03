@@ -1,4 +1,5 @@
 import { Router } from "express";
+import axios from "axios";
 import asyncHandler from "express-async-handler";
 import { z } from "zod";
 import { Interview } from "../models/Interview.js";
@@ -11,9 +12,8 @@ router.get(
   "/",
   protect,
   asyncHandler(async (req, res) => {
-    const filter = req.user.role === "candidate"
-      ? { candidate: req.user._id }
-      : { company: req.user._id };
+    const filter =
+      req.user.role === "candidate" ? { candidate: req.user._id } : { company: req.user._id };
     const list = await Interview.find(filter)
       .populate("candidate", "-password")
       .populate("job")
@@ -55,6 +55,157 @@ router.post(
     res.status(201).json(interview);
   }),
 );
+router.post(
+  "/start/:applicationId",
+
+  protect,
+  requireRole("candidate"),
+
+  asyncHandler(async (req, res) => {
+    const application = await Application.findById(req.params.applicationId).populate("job");
+
+    if (!application) {
+      return res.status(404).json({
+        message: "Application not found",
+      });
+    }
+
+    // =====================================
+    // OWNERSHIP
+    // =====================================
+
+    if (application.candidate.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Forbidden",
+      });
+    }
+
+    // =====================================
+    // SHORTLIST CHECK
+    // =====================================
+
+    if (application.status !== "Shortlisted") {
+      return res.status(403).json({
+        message: "You are not shortlisted for this interview",
+      });
+    }
+
+    // =====================================
+    // DEADLINE
+    // =====================================
+
+    // Find existing interview first.
+    const existingInterview = await Interview.findOne({
+      application: application._id,
+    });
+
+    if (existingInterview?.status === "Completed") {
+      return res.status(409).json({
+        message: "Interview already completed",
+      });
+    }
+
+    /*
+      Only block NEW interviews after deadline.
+
+      If candidate already started before deadline,
+      allow them to continue.
+    */
+
+    if (
+      !existingInterview &&
+      application.job.deadline &&
+      new Date() > new Date(application.job.deadline)
+    ) {
+      application.interviewStatus = "Expired";
+
+      await application.save();
+
+      return res.status(403).json({
+        message: "Interview deadline expired",
+      });
+    }
+
+    // =====================================
+    // RESUME EXISTENCE
+    // =====================================
+
+    if (!application.resumeUrl) {
+      return res.status(400).json({
+        message: "Resume not found",
+      });
+    }
+
+    // =====================================
+    // CREATE / RESUME INTERVIEW
+    // =====================================
+
+    let interview = existingInterview;
+
+    if (!interview) {
+      interview = await Interview.create({
+        application: application._id,
+
+        job: application.job._id,
+
+        candidate: application.candidate,
+
+        company: application.job.postedBy,
+
+        date: new Date(),
+
+        meetingType: "AI Interview",
+
+        status: "InProgress",
+
+        questionNumber: 0,
+
+        totalQuestions: 6,
+      });
+    }
+
+    application.interviewStatus = "InProgress";
+
+    await application.save();
+
+    // =====================================
+    // CALL PYTHON
+    // =====================================
+
+    try {
+      let response;
+
+      try {
+        response = await axios.post(`http://127.0.0.1:8000/interview/${application._id}/start`);
+      } catch (error) {
+        if (error.response?.data?.detail !== "Checkpoint not found.") throw error;
+
+        await axios.post(`http://127.0.0.1:8000/process-resume/${application._id}`, undefined, {
+          timeout: 120000,
+        });
+        response = await axios.post(`http://127.0.0.1:8000/interview/${application._id}/start`);
+      }
+
+      return res.json({
+        interviewId: interview._id,
+
+        applicationId: application._id,
+
+        jobTitle: application.job.title,
+
+        deadline: application.job.deadline,
+
+        ...response.data,
+      });
+    } catch (error) {
+      console.error("Interview AI error:", error.response?.data || error.message);
+
+      return res.status(500).json({
+        message: "Could not start AI interview",
+      });
+    }
+  }),
+);
 
 router.get(
   "/:id",
@@ -76,11 +227,11 @@ const updateSchema = z.object({
   notes: z.string().optional(),
   result: z
     .object({
-      overall: z.number(),
-      technical: z.number(),
-      communication: z.number(),
-      confidence: z.number(),
-      problemSolving: z.number(),
+      overall: z.number().optional(),
+      technical: z.number().optional(),
+      communication: z.number().optional(),
+      confidence: z.number().optional(),
+      problemSolving: z.number().optional(),
       strengths: z.array(z.string()).optional(),
       improvements: z.array(z.string()).optional(),
     })
@@ -98,7 +249,7 @@ router.patch(
       return res.status(403).json({ message: "Forbidden" });
     const patch = updateSchema.parse(req.body);
     Object.assign(it, patch);
-    if (patch.status === "Completed" || patch.result) it.status = "Completed";
+    if (patch.status === "Completed") it.status = "Completed";
     await it.save();
     if (it.status === "Completed") {
       await Application.findByIdAndUpdate(it.application, {

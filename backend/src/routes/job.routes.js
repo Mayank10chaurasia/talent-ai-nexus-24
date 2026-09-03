@@ -15,11 +15,12 @@ router.get(
     if (status) filter.status = status;
     if (workMode) filter.workMode = workMode;
     if (employmentType) filter.employmentType = employmentType;
-    if (q) filter.$or = [
-      { title: new RegExp(q, "i") },
-      { description: new RegExp(q, "i") },
-      { skills: new RegExp(q, "i") },
-    ];
+    if (q)
+      filter.$or = [
+        { title: new RegExp(q, "i") },
+        { description: new RegExp(q, "i") },
+        { skills: new RegExp(q, "i") },
+      ];
     const jobs = await Job.find(filter).sort({ createdAt: -1 }).lean();
     const withCounts = await Promise.all(
       jobs.map(async (j) => ({
@@ -103,6 +104,7 @@ router.delete(
     if (!job) return res.status(404).json({ message: "Job not found" });
     if (job.postedBy.toString() !== req.user._id.toString())
       return res.status(403).json({ message: "Forbidden" });
+    await Application.deleteMany({ job: job._id });
     await job.deleteOne();
     res.json({ ok: true });
   }),

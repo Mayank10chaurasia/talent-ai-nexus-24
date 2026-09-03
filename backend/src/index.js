@@ -33,6 +33,11 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-connectDB().then(() => {
-  app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
-});
+connectDB()
+  .then(() => {
+    app.listen(PORT, () => console.log(`API on http://localhost:${PORT}`));
+  })
+  .catch((error) => {
+    console.error("MongoDB connection failed:", error.message);
+    process.exitCode = 1;
+  });

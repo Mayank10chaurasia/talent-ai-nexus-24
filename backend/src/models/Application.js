@@ -13,10 +13,16 @@ const applicationSchema = new mongoose.Schema(
       index: true,
     },
     interviewStatus: {
-      type: String,
-      enum: ["Pending", "Scheduled", "Completed", "Cancelled"],
-      default: "Pending",
-    },
+    type: String,
+    enum: [
+    "Pending",
+    "Available",
+    "InProgress",
+    "Completed",
+    "Expired"
+  ],
+  default: "Pending",
+},
     coverLetter: String,
     resumeUrl: String,
     aiAnalysis: {
