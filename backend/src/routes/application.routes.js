@@ -8,6 +8,7 @@ import { Job } from "../models/Job.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
 const router = Router();
+const AI_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
 
 // ======================================================
 // VALIDATION
@@ -78,13 +79,16 @@ router.post(
 
     try {
       const response = await axios.post(
-        `http://127.0.0.1:8000/process-resume/${application._id}`,
+        `${AI_BASE}/process-resume/${application._id}`,
         undefined,
         { timeout: 120000 },
       );
       console.log("AI analysis completed:", response.data);
     } catch (error) {
-      console.error("AI analysis failed:", error.response?.data || error.message);
+      console.error(
+        "AI analysis failed:",
+        error.response?.data || error.message,
+      );
     }
 
     // ==================================================
@@ -227,7 +231,13 @@ router.patch(
   asyncHandler(async (req, res) => {
     const { status } = z
       .object({
-        status: z.enum(["New", "Shortlisted", "Rejected", "Interviewed", "Hired"]),
+        status: z.enum([
+          "New",
+          "Shortlisted",
+          "Rejected",
+          "Interviewed",
+          "Hired",
+        ]),
       })
       .parse(req.body);
 

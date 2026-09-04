@@ -17,13 +17,18 @@ Point the frontend at it by adding to the project root `.env`:
 
 ```
 VITE_API_URL=http://localhost:5000/api
+VITE_AI_API_URL=http://localhost:8000
 ```
+
+When deploying the backend, set `AI_API_URL` to the URL of the deployed Python
+AI service, for example `https://interview-ai-nx9w.onrender.com`.
 
 ## Endpoints
 
 All JSON. Protected routes need `Authorization: Bearer <token>`.
 
 ### Auth
+
 - `POST /api/auth/signup` — `{ name, email, password, role: "company"|"candidate" }`
 - `POST /api/auth/login` — `{ email, password }`
 - `GET  /api/auth/me` — current user (protected)
@@ -31,6 +36,7 @@ All JSON. Protected routes need `Authorization: Bearer <token>`.
 - `POST /api/auth/reset` — stub
 
 ### Jobs
+
 - `GET    /api/jobs` — list (public, supports `?q=&status=&workMode=`)
 - `GET    /api/jobs/:id` — detail (public)
 - `POST   /api/jobs` — create (company)
@@ -38,23 +44,28 @@ All JSON. Protected routes need `Authorization: Bearer <token>`.
 - `DELETE /api/jobs/:id` — delete (company, owner)
 
 ### Applications
+
 - `POST /api/applications` — apply to a job (candidate)
 - `GET  /api/applications/mine` — candidate's applications
 - `GET  /api/applications/job/:jobId` — applicants for a job (company)
 - `PATCH /api/applications/:id/status` — update status (company)
 
 ### Interviews
+
 - `GET   /api/interviews` — mine (candidate or company)
 - `POST  /api/interviews` — schedule (company)
 - `GET   /api/interviews/:id` — detail
 - `PATCH /api/interviews/:id` — update / add result
 
 ### Users
+
 - `GET  /api/users/me` — profile
 - `PUT  /api/users/me` — update profile
 
 ### Resume (for the Python model service)
+
 Plain endpoints, no auth — meant to be called by your Python model server.
+
 - `GET  /api/resume/pending` — list applications that don't have an AI score yet.
   Each item: `{ applicationId, resumeUrl, jobDescription, jobTitle, requiredSkills, candidateName }`
 - `GET  /api/resume/:applicationId` — same shape for one application.

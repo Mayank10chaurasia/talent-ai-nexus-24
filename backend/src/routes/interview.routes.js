@@ -7,13 +7,16 @@ import { Application } from "../models/Application.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
 const router = Router();
+const AI_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
 
 router.get(
   "/",
   protect,
   asyncHandler(async (req, res) => {
     const filter =
-      req.user.role === "candidate" ? { candidate: req.user._id } : { company: req.user._id };
+      req.user.role === "candidate"
+        ? { candidate: req.user._id }
+        : { company: req.user._id };
     const list = await Interview.find(filter)
       .populate("candidate", "-password")
       .populate("job")
@@ -62,7 +65,9 @@ router.post(
   requireRole("candidate"),
 
   asyncHandler(async (req, res) => {
-    const application = await Application.findById(req.params.applicationId).populate("job");
+    const application = await Application.findById(
+      req.params.applicationId,
+    ).populate("job");
 
     if (!application) {
       return res.status(404).json({
@@ -176,14 +181,23 @@ router.post(
       let response;
 
       try {
-        response = await axios.post(`http://127.0.0.1:8000/interview/${application._id}/start`);
+        response = await axios.post(
+          `${AI_BASE}/interview/${application._id}/start`,
+        );
       } catch (error) {
-        if (error.response?.data?.detail !== "Checkpoint not found.") throw error;
+        if (error.response?.data?.detail !== "Checkpoint not found.")
+          throw error;
 
-        await axios.post(`http://127.0.0.1:8000/process-resume/${application._id}`, undefined, {
-          timeout: 120000,
-        });
-        response = await axios.post(`http://127.0.0.1:8000/interview/${application._id}/start`);
+        await axios.post(
+          `${AI_BASE}/process-resume/${application._id}`,
+          undefined,
+          {
+            timeout: 120000,
+          },
+        );
+        response = await axios.post(
+          `${AI_BASE}/interview/${application._id}/start`,
+        );
       }
 
       return res.json({
@@ -198,7 +212,10 @@ router.post(
         ...response.data,
       });
     } catch (error) {
-      console.error("Interview AI error:", error.response?.data || error.message);
+      console.error(
+        "Interview AI error:",
+        error.response?.data || error.message,
+      );
 
       return res.status(500).json({
         message: "Could not start AI interview",
