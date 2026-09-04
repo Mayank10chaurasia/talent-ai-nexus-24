@@ -8,7 +8,8 @@ import { Job } from "../models/Job.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
 const router = Router();
-const AI_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
+const getAiBase = () =>
+  (process.env.AI_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
 // ======================================================
 // VALIDATION
@@ -79,7 +80,7 @@ router.post(
 
     try {
       const response = await axios.post(
-        `${AI_BASE}/process-resume/${application._id}`,
+        `${getAiBase()}/process-resume/${application._id}`,
         undefined,
         { timeout: 120000 },
       );

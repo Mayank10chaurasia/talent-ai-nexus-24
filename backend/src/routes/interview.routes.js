@@ -7,7 +7,10 @@ import { Application } from "../models/Application.js";
 import { protect, requireRole } from "../middleware/auth.js";
 
 const router = Router();
-const AI_BASE = process.env.AI_API_URL || "http://127.0.0.1:8000";
+const AI_TIMEOUT = 120000;
+
+const getAiBase = () =>
+  (process.env.AI_API_URL || "http://127.0.0.1:8000").replace(/\/$/, "");
 
 router.get(
   "/",
@@ -179,24 +182,29 @@ router.post(
 
     try {
       let response;
+      const aiBase = getAiBase();
 
       try {
         response = await axios.post(
-          `${AI_BASE}/interview/${application._id}/start`,
+          `${aiBase}/interview/${application._id}/start`,
+          undefined,
+          { timeout: AI_TIMEOUT },
         );
       } catch (error) {
         if (error.response?.data?.detail !== "Checkpoint not found.")
           throw error;
 
         await axios.post(
-          `${AI_BASE}/process-resume/${application._id}`,
+          `${aiBase}/process-resume/${application._id}`,
           undefined,
           {
             timeout: 120000,
           },
         );
         response = await axios.post(
-          `${AI_BASE}/interview/${application._id}/start`,
+          `${aiBase}/interview/${application._id}/start`,
+          undefined,
+          { timeout: AI_TIMEOUT },
         );
       }
 
@@ -217,8 +225,9 @@ router.post(
         error.response?.data || error.message,
       );
 
-      return res.status(500).json({
-        message: "Could not start AI interview",
+      const detail = error.response?.data?.detail;
+      return res.status(502).json({
+        message: detail || "AI interview service unavailable",
       });
     }
   }),
