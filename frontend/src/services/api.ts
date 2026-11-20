@@ -1,8 +1,10 @@
-const BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
+const BASE = API_URL.replace(/\/+$/, "").endsWith("/api")
+  ? API_URL.replace(/\/+$/, "")
+  : `${API_URL.replace(/\/+$/, "")}/api`;
 
 const AI_BASE = import.meta.env.VITE_AI_API_URL || "http://127.0.0.1:8000";
-
-const TOKEN_KEY = "hireai_token";
 
 // ==========================================
 // TOKEN STORE
